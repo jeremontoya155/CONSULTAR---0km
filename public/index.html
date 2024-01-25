@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Selecciona Tu Modelo</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+  <style>
+
+    
+  body {
+  background-color: rgba(255, 0, 0, 0.512); /* Fondo naranja muy transparente */
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+
+/*Corregimos valores*/
+.container {
+  max-height: 80vh; /* Cambié el porcentaje a viewport height (vh) */
+    overflow-y: auto; /* Añadí el scroll vertical si es necesario */
+    scroll-behavior: auto;
+    max-width: 800px;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    margin-bottom: 2em;
+}
+
+h1 {
+  font-size: 4em;
+  text-align: center;
+}
+
+label,
+button {
+  display: block;
+  margin-bottom: 10px;
+}
+
+select{
+  margin-bottom: 1em;
+}
+
+select,
+button {
+  font-size: 16px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/*Dejamos blanco el background*/
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+}
+
+th,
+td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+button {
+  background-color: #4CAF50;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+  </style>
+</head>
+<body>
+
+
+
+  <div class="container">
+    <h1>CUANTO VALE TU 0KM</h1>
+
+
+<!-- Botón para consultar todas las marcas -->
+<button onclick="consultarTodasLasMarcas()">Consultar Todas las Marcas</button>
+
+<!-- Lista desplegable para seleccionar la marca -->
+
+<select id="brandDropdown" onchange="cambiarMarca()">
+  <option value="">Seleccione una marca</option>
+  <!-- Las opciones se llenarán dinámicamente con JavaScript -->
+</select>
+
+<!-- Lista desplegable para seleccionar el grupo -->
+
+<select id="groupDropdown">
+  <option value="">Seleccione un modelo</option>
+  <!-- Las opciones se llenarán dinámicamente con JavaScript -->
+</select>
+
+<button onclick="buscarModelos()">Buscar Modelos</button>
+  </div>
+
+  <!-- <div class="container">
+    <h2>Escribir tu CODIA</h2>
+    <label for="codiaInput">Ingrese su CODIA:</label>
+    <input type="text" id="codiaInput" placeholder="Ej. ABC123">
+    <button onclick="buscarPreciosPorCodia()">Buscar Precios por CODIA</button>
+  </div>
+
+<div class="container"> -->
+  
+  
+
+<!-- Tabla para mostrar modelos -->
+<div class="container">
+<table id="modelos-table">
+  <thead>
+    <tr>
+      <th>CODIA</th>
+      <th>Descripción</th>
+      <th>Ver Precios</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Las filas se llenarán dinámicamente con JavaScript -->
+  </tbody>
+</table>
+
+<!-- Tabla para mostrar precios -->
+<!-- <table id="precios-table">
+  <thead>
+    <tr>
+      <th>Año</th>
+      <th>Precio</th>
+    </tr>
+  </thead>
+  <tbody>
+    Las filas se llenarán dinámicamente con JavaScript
+  </tbody>
+</table></div> --> </div>
+
+<script>
+  function consultarTodasLasMarcas() {
+    const apiUrl = '/obtener-marcas';
+
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then(data => {
+        llenarMarcasEnDropdown(data.marcas);
+        console.log('Marcas obtenidas:', data.marcas.length);
+      })
+      .catch(error => {
+        console.error('Error al cargar las marcas:', error);
+        // Manejar el error según tus necesidades
+      });
+  }
+
+  function llenarMarcasEnDropdown(marcas) {
+    const brandDropdown = document.getElementById('brandDropdown');
+
+    // Limpiar opciones antiguas
+    brandDropdown.innerHTML = '<option value="">Seleccione una marca</option>';
+
+    // Llenar opciones con las marcas recibidas
+    marcas.forEach(marca => {
+      const option = document.createElement('option');
+      option.value = marca.BrandsId;
+      option.textContent = marca.NombreMarca;
+      brandDropdown.appendChild(option);
+    });
+  }
+
+  async function llenarGruposEnDropdown(brandId) {
+    const apiUrlGrupos = `/obtener-grupos/${brandId}`;
+
+    try {
+      const response = await fetch(apiUrlGrupos);
+      const data = await response.json();
+
+      const groupDropdown = document.getElementById('groupDropdown');
+
+      // Limpiar opciones antiguas
+      groupDropdown.innerHTML = '<option value="">Seleccione un grupo</option>';
+
+      // Llenar opciones con los grupos recibidos
+      data.grupos.forEach(grupo => {
+        const option = document.createElement('option');
+        option.value = grupo.GroupId;
+        option.textContent = grupo.NombreGrupo;
+        groupDropdown.appendChild(option);
+      });
+
+      console.log('Grupos obtenidos:', data.grupos.length);
+    } catch (error) {
+      console.error('Error al cargar los grupos:', error);
+      // Manejar el error según tus necesidades
+    }
+  }
+
+  function cambiarMarca() {
+    const brandDropdown = document.getElementById('brandDropdown');
+    const selectedBrandId = brandDropdown.value;
+
+    if (selectedBrandId) {
+      llenarGruposEnDropdown(selectedBrandId);
+    }
+  }
+
+  async function buscarModelos() {
+    const brandDropdown = document.getElementById('brandDropdown');
+    const groupDropdown = document.getElementById('groupDropdown');
+    const selectedBrandId = brandDropdown.value;
+    const selectedGroupId = groupDropdown.value;
+
+    if (!selectedBrandId) {
+      alert('Seleccione una marca antes de buscar modelos.');
+      return;
+    }
+
+    if (!selectedGroupId) {
+      alert('Seleccione un grupo antes de buscar modelos.');
+      return;
+    }
+
+    const apiUrlModelos = `/obtener-modelos/${selectedBrandId}/${selectedGroupId}`;
+
+    try {
+      const response = await fetch(apiUrlModelos);
+      const data = await response.json();
+
+      console.log('Modelos obtenidos:', data.modelos);
+
+      // Mostrar modelos en una tabla (puedes adaptar esta parte según tu necesidad)
+      const modelosTable = document.getElementById('modelos-table');
+      modelosTable.innerHTML = '<thead><tr><th>CODIA</th><th>Descripción</th><th>Ver Precios</th></tr></thead><tbody></tbody>';
+
+      data.modelos.forEach(modelo => {
+        const row = modelosTable.querySelector('tbody').insertRow();
+        row.insertCell(0).textContent = modelo.codia;
+        row.insertCell(1).textContent = modelo.description;
+
+        // Botón para ver precios
+        const btnVerPrecios = document.createElement('button');
+        btnVerPrecios.textContent = 'Ver Precios';
+        btnVerPrecios.onclick = () => verPrecios(modelo.codia);
+        row.insertCell(2).appendChild(btnVerPrecios);
+      });
+    } catch (error) {
+      console.error('Error al cargar los modelos:', error);
+      // Manejar el error según tus necesidades
+    }
+  }
+
+  /*async function verPrecios(codia) {
+    const apiUrlPrecios = `/obtener-precios/${codia}`;
+
+    try {
+      const response = await fetch(apiUrlPrecios);
+      const data = await response.json();
+
+      console.log('Precios obtenidos:', data.precios);
+
+      // Mostrar precios en una tabla (puedes adaptar esta parte según tu necesidad)
+      const preciosTable = document.getElementById('precios-table');
+      preciosTable.innerHTML = '<thead><tr><th>Año</th><th>Precio</th></tr></thead><tbody></tbody>';
+
+      data.precios.forEach(precio => {
+        const row = preciosTable.querySelector('tbody').insertRow();
+        row.insertCell(0).textContent = precio.year;
+        row.insertCell(1).textContent = precio.price;
+      });
+    } catch (error) {
+      console.error('Error al cargar los precios:', error);
+      // Manejar el error según tus necesidades
+    }
+  }*/
+ 
+  async function verPrecios(codia) {
+  const apiUrlPrecios = `/obtener-precios/${codia}`;
+
+  try {
+    const response = await fetch(apiUrlPrecios);
+    const data = await response.json();
+
+    if (!data || !data.hasOwnProperty('list_price')) {
+      console.error('Error al cargar el list_price: La respuesta del servidor no tiene la propiedad "list_price".', data);
+      return;
+    }
+
+    const listPrice = data.list_price;
+
+    console.log('List Price obtenido:', listPrice);
+
+    // Mostrar SweetAlert2 con el list_price
+    Swal.fire({
+      title: 'Precio actual',
+      text: `El precio es: ${listPrice}`,
+      icon: 'success'
+    });
+  } catch (error) {
+    console.error('Error al cargar el list_price:', error.message);
+    // Manejar el error según tus necesidades
+  }
+}
+
+  async function buscarPreciosPorCodia() {
+  const codiaInput = document.getElementById('codiaInput');
+  const codia = codiaInput.value.trim();
+
+  if (!codia) {
+    alert('Por favor, ingrese un CODIA válido.');
+    return;
+  }
+
+  const apiUrlPrecios = `/obtener-precios/${codia}`;
+
+  try {
+    const response = await fetch(apiUrlPrecios);
+    const data = await response.json();
+
+    console.log('Precios obtenidos por CODIA:', data.precios);
+
+    // Mostrar precios en una tabla (puedes adaptar esta parte según tu necesidad)
+    const preciosTable = document.getElementById('modelos-table');
+    preciosTable.innerHTML = '<thead><tr><th>Año</th><th>Precio</th></tr></thead><tbody></tbody>';
+
+    data.precios.forEach(precio => {
+      const row = preciosTable.querySelector('tbody').insertRow();
+      row.insertCell(0).textContent = precio.year;
+      row.insertCell(1).textContent = precio.price;
+    });
+  } catch (error) {
+    console.error('Error al cargar los precios por CODIA:', error);
+    // Manejar el error según tus necesidades
+  }
+}
+</script>
+
+</body>
+</html>
