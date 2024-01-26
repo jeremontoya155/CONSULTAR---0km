@@ -297,10 +297,20 @@ button:hover {
 
   try {
     const response = await fetch(apiUrlPrecios);
+    
+    if (!response.ok) {
+      throw new Error(`Error al cargar el list_price: ${response.statusText}`);
+    }
+
     const data = await response.json();
 
     if (!data || !data.hasOwnProperty('list_price')) {
-      console.error('Error al cargar el list_price: La respuesta del servidor no tiene la propiedad "list_price".', data);
+      // Mostrar SweetAlert2 indicando que no hay precios
+      Swal.fire({
+        title: 'No hay precios',
+        text: 'No hay precios actualmente para el modelo 0km. Consulte nuevamente.',
+        icon: 'warning'
+      });
       return;
     }
 
@@ -316,9 +326,16 @@ button:hover {
     });
   } catch (error) {
     console.error('Error al cargar el list_price:', error.message);
-    // Manejar el error según tus necesidades
+
+    // Mostrar SweetAlert2 indicando que hubo un error
+    Swal.fire({
+      title: 'Error',
+      text: 'No tenemos disponible actualmente precios para este modelo en 0km.',
+      icon: 'icon'
+    });
   }
 }
+
 
   async function buscarPreciosPorCodia() {
   const codiaInput = document.getElementById('codiaInput');
