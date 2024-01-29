@@ -1,0 +1,8 @@
+stages:
+  - mirror
+
+mirror:
+  script:
+    - git clone --mirror https://github.com/jeremontoya155/CONSULTAR---0km.git
+    - cd tu-repo.git
+    - git push --mirror https://github.com/jeremontoya155/CONSULTAR---0km.git
