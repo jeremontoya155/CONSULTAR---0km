@@ -1,35 +1,48 @@
 const axios = require('axios');
 require('dotenv').config();
+const url =process.env.URL ;
+const email =process.env.EMAIL ;
+const password =process.env.PASSWORD ; 
+let ACCESSTOKEN;
 
-let ACCESSTOKEN;  // Declara la variable ACCESSTOKEN fuera de la función refreshToken
-
-const refreshToken = async () => {
+const loginAndGetToken = async () => {
   try {
-    const response = await axios.post(
-      'https://api.infoauto.com.ar/cars/auth/refresh',
-      {
-        refresh_token: process.env.REFRESH_TOKEN,
-        client_id: process.env.CLIENT_ID,
-        client_secret: process.env.CLIENT_SECRET,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.REFRESH_TOKEN}`,
-        },
-      }
-    );
+    // Codificar las credenciales en Base64
+    const credentials = Buffer.from(`${email}:${password}`).toString('base64');
 
-    // Imprime la respuesta en la consola
-    
-    ACCESSTOKEN = response.data.access_token;
+    // Configurar el encabezado de autorización
+    const headers = {
+      'Authorization': `Basic ${credentials}`
+    };
+
+    // Realizar la solicitud POST para obtener el token
+    const response = await axios.post(url, null, { headers });
+
+    // Verificar el código de estado de la respuesta
+    if (response.status === 200) {
+      // La solicitud fue exitosa
+      const respuestaJson = response.data;
+      ACCESSTOKEN = response.data.access_token;
+
+      
+
+      const token = respuestaJson.access_token;
+      // Llamar a la función para obtener datos de la API usando el token
+      
+    } else if (response.status === 401) {
+      // Error de autenticación
+      console.log('Error de autenticación. Verifica las credenciales.');
+    } else {
+      // Otro tipo de error
+      console.log('Error en la solicitud. Código de estado:', response.status);
+    }
   } catch (error) {
-    console.error('Error al hacer la solicitud de carga:', error.message);
+    console.error('Error al realizar la solicitud:', error.message);
   }
 };
 
-refreshToken();  // Asegúrate de que esta llamada se complete correctamente antes de continuar.
-
+// Llamada a la función principal
+loginAndGetToken(); 
 
 // Resto del código
 require('dotenv').config()
