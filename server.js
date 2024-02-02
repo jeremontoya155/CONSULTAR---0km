@@ -244,7 +244,10 @@ async function obtenerTodosLosModelos(apiUrl, ACCESSTOKEN, brandId, groupId) {
         }
       });
 
-      return response.data.map(modelo => ({
+      // Filtrar modelos cuyo list_price sea mayor a 0
+      const filteredModels = response.data.filter(modelo => modelo.list_price > 0);
+
+      return filteredModels.map(modelo => ({
         codia: modelo.codia,
         description: modelo.description
       }));
@@ -273,6 +276,7 @@ async function obtenerTodosLosModelos(apiUrl, ACCESSTOKEN, brandId, groupId) {
 
   return allData;
 }
+
 
 async function obtenerListPrice(apiUrl, ACCESSTOKEN, codia) {
   try {
