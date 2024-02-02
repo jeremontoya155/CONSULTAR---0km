@@ -42,7 +42,19 @@ const loginAndGetToken = async () => {
 };
 
 // Llamada a la función principal
-loginAndGetToken(); 
+let isServerRunning = false;
+
+// Llamada a la función principal
+loginAndGetToken().then(() => {
+  isServerRunning = true;
+
+  // Renovar el token cada 30 minutos (30 minutos * 60 segundos * 1000 milisegundos)
+  setInterval(() => {
+    if (isServerRunning) {
+      loginAndGetToken();
+    }
+  }, 30 * 60 * 1000);
+
 
 // Resto del código
 require('dotenv').config()
