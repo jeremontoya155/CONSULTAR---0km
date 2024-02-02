@@ -53,7 +53,7 @@ loginAndGetToken().then(() => {
     if (isServerRunning) {
       loginAndGetToken();
     }
-  }, 30 * 60 * 1000);
+  }, 30 * 60 * 1000);});
 
 
 // Resto del código
